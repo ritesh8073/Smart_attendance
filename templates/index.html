@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYMPL SNAP | Automated Classroom Attendance System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #0d47a1;
+            --accent-color: #2962ff;
+            --background-color: #f8f9fa;
+            --light-gray: #f2f2f2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: auto;
+        }
+
+        /* Unified Header (Combined College Header + Main Header) */
+        header {
+            background-color: rgba(26, 35, 126, 0.9);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 2s ease-out;
+        }
+
+        header .college-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        header .college-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            margin-right: 15px;
+            padding: 5px;
+        }
+
+        header .college-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        header .dept-name {
+            font-size: 1.1rem;
+            color: white;
+            margin-top: 5px;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            font-weight: 400;
+        }
+
+        /* Content Section */
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+            margin: 40px auto;
+            animation: fadeInUp 1.5s ease-out;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        .content p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #333;
+            text-align: center;
+            max-width: 800px;
+            margin-bottom: 30px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        }
+
+        footer {
+            background-color: rgba(26, 35, 126, 0.9);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            width: 100%;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-info p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+            color: #f8f9fa;
+        }
+
+        .contact-info a {
+            color: #f8f9fa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .contact-info a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Unified Header (Combined College Info and Project Header) -->
+    <header class="animate__animated animate__fadeIn">
+        <div class="college-info">
+            <!-- Replace this with the actual logo path -->
+            <img src="static/amc_logo.jpg" alt="SYMPL SNAP Logo" class="college-logo">
+            <div>
+                <div class="college-name">AMC Engineering College</div>
+                <div class="dept-name">Department of CSE (AI & ML)</div>
+            </div>
+        </div>
+
+        <h1>SYMPL SNAP</h1>
+        <p>Your efficient and automated solution for classroom attendance using facial recognition.</p>
+    </header>
+
+    <!-- Content Section -->
+    <div class="content animate__animated animate__fadeInUp">
+        <h2>About the Project</h2>
+        <p>SYMPL SNAP is an innovative attendance management system that utilizes facial recognition technology to automate the process of marking attendance in classrooms. Faculty can easily upload classroom images, and the system automatically recognizes students and marks attendance.</p>
+        <p>This solution improves efficiency, accuracy, and saves valuable time for both faculty and students, ensuring a seamless experience.</p>
+        
+        <a href="{{ url_for('login') }}" class="button">Get Started</a>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="contact-info">
+            <p>&copy; 2024 SYMPL SNAP. All Rights Reserved.</p>
+            <p>Contact: <a href="mailto:amccseaiml2022@gmail.com">amccseaiml2022@gmail.com</a> | <a href="tel:+918660144040">+91-8660144040</a></p>
+        </div>
+    </footer>
+
+</body>
+</html>

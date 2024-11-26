@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMC-AIML Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #0d47a1;
+            --accent-color: #2962ff;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: rgba(26, 35, 126, 0.95);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .college-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .college-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            padding: 5px;
+        }
+        .college-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .dept-name {
+            color: #90caf9;
+            font-size: 1.2rem;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-out;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .form-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(41, 98, 255, 0.1);
+            outline: none;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .login-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        .guidelines {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(144, 202, 249, 0.1);
+            border-radius: 8px;
+        }
+        .guidelines h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        .guidelines ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .guidelines li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #424242;
+        }
+        .guidelines i {
+            color: var(--accent-color);
+        }
+        footer {
+            background: rgba(26, 35, 126, 0.95);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: auto;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Floating particles animation */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+        <!-- Particles will be added by JavaScript -->
+    </div>
+    <div class="page-container">
+        <header>
+            <div class="college-info animate__animated animate__fadeIn">
+                <img src="/static/amc_logo.jpg" alt="AMC Engineering College" class="college-logo">
+                <div>
+                    <div class="college-name">AMC Engineering College</div>
+                    <div class="dept-name">Department of CSE (AI & ML)</div>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div class="login-container animate__animated animate__fadeInUp">
+                <div class="login-header">
+                    <h2>AI-Powered Attendance System</h2>
+                    <p>Faculty Login Portal</p>
+                </div>
+                <form method="POST" id="login-form">
+                    <div class="form-group">
+                        <label for="username"><i class="fas fa-user"></i> Faculty ID</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="Faculty ID" required aria-required="true">
+                        <small id="username-error" style="color:red; display:none;">Invalid Faculty ID format.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Password" required aria-required="true">
+                    </div>
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                <div class="guidelines">
+                    <h3>Quick Guidelines</h3>
+                    <ul>
+                        <li><i class="fas fa-info-circle"></i> Use your faculty ID as username</li>
+                        <li><i class="fas fa-shield-alt"></i> Password as given to the faculty</li>
+                        <li><i class="fas fa-camera"></i> Ensure good lighting for photo capture</li>
+                        <li><i class="fas fa-users"></i> Take attendance for entire class at once</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+        <footer>
+            <p>&copy; 2024 AMC Engineering College - CSE (AI & ML) Department</p>
+        </footer>
+    </div>
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            const particleCount = 50;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.opacity = Math.random();
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Real-time validation for Faculty ID
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value;
+            const errorMessage = document.getElementById('username-error');
+            const regex = /^\d[A-Z]{2}\d{2}[A-Z]{2}$/;
+            if (!regex.test(username)) {
+                errorMessage.style.display = 'block';
+            } else {
+                errorMessage.style.display = 'none';
+            }
+        });
+
+        // Form validation on submit
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const regex = /^\d[A-Z]{2}\d{2}[A-Z]{2}$/;
+            if (!regex.test(username)) {
+                e.preventDefault();
+                alert('Please enter a valid Faculty ID');
+            }
+        });
+
+        // Initialize particles
+        createParticles();
+    </script>
+</body>
+</html>
