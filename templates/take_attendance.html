@@ -237,6 +237,28 @@
             100% { opacity: 1; }
         }
 
+        /* Styling for the transparent logout button */
+        .logout-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 10px 20px;
+            border: 2px solid white;
+            background-color: transparent;
+            color: white;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background-color: white;
+            color: #1a73e8;
+            border-color: #1a73e8;
+            transform: scale(1.1);
+        }
+
     </style>
 </head>
 <body>
@@ -248,6 +270,11 @@
             <div class="dept-name">Department of CSE (AI & ML)</div>
         </div>
     </div>
+
+    <!-- Transparent Logout Button -->
+    <a href="{{ url_for('logout') }}">
+        <button class="logout-button">Logout</button>
+    </a>
 
     <h1>Take Attendance - AMC College</h1>
     
@@ -267,38 +294,27 @@
 
     <!-- Result Section -->
     <div id="result-section">
-        <div class="card-container">
-            <!-- View Attendance Card -->
-            <div class="card">
-                <div class="card-title">Attendance Processed Successfully</div>
-                <a id="sheet-link" href="#" class="sheet-link" target="_blank">View Attendance Sheet</a>
+        <p>Attendance has been recorded successfully.</p>
+        <a id="sheet-link" href="#" target="_blank" class="sheet-link">View Attendance Sheet</a>
+        
+        <!-- Share Options -->
+        <div class="share-options">
+            <p class="share-title">Share Attendance Sheet:</p>
+            <div class="share-buttons">
+                <a id="whatsapp-share" href="#" class="share-button whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+                <a id="telegram-share" href="#" class="share-button telegram">
+                    <i class="fab fa-telegram"></i> Telegram
+                </a>
+                <a id="email-share" href="#" class="share-button email">
+                    <i class="fas fa-envelope"></i> Email
+                </a>
+                <button id="copy-link" class="share-button copy">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
             </div>
-
-            <!-- Share Attendance Card -->
-            <div class="card">
-                <div class="share-title">Share Attendance Sheet:</div>
-                <div class="share-buttons">
-                    <a id="whatsapp-share" href="#" class="share-button whatsapp">
-                        <i class="fab fa-whatsapp"></i> WhatsApp
-                    </a>
-                    <a id="telegram-share" href="#" class="share-button telegram">
-                        <i class="fab fa-telegram"></i> Telegram
-                    </a>
-                    <a id="email-share" href="#" class="share-button email">
-                        <i class="fas fa-envelope"></i> Email
-                    </a>
-                    <button id="copy-link" class="share-button copy">
-                        <i class="fas fa-link"></i> Copy Link
-                    </button>
-                </div>
-                <div id="copy-success" class="success-message">Link copied successfully!</div>
-            </div>
-
-            <!-- View Attendance Statistics Card -->
-            <div class="card">
-                <div class="card-title">View Attendance Statistics</div>
-                <a href="{{ url_for('attendance_statistics') }}" class="sheet-link">Go to Statistics</a>
-            </div>
+            <div id="copy-success" class="success-message">Link copied successfully!</div>
         </div>
     </div>
 

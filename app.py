@@ -84,6 +84,13 @@ def index():
     """Render the starting page (index.html)."""
     return render_template('index.html')
 
+@app.route('/logout')
+def logout():
+    """Log out the user by clearing the session and redirecting to login page."""
+    session.pop('user', None)  # Remove the user from the session
+    return redirect(url_for('login'))  # Redirect to login page
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
