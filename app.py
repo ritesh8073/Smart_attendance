@@ -1,4 +1,3 @@
-
 import os
 import cv2
 import dlib
@@ -10,31 +9,39 @@ from flask import Flask, request, render_template, redirect, url_for, session
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
+
 # Initialize the Flask app
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
 # Path to save pickle files and photos
 STUDENT_DATA_PATH = 'student_data/'
 PICKLE_FILE = os.path.join(STUDENT_DATA_PATH, 'encodings.pkl')
+
 # Ensure student data path exists
 if not os.path.exists(STUDENT_DATA_PATH):
     os.makedirs(STUDENT_DATA_PATH)
+
 # Ensure the pickle file exists
 if not os.path.exists(PICKLE_FILE):
     with open(PICKLE_FILE, 'wb') as f:
         pass  # Create an empty pickle file if it doesn't exist yet
+
 # Load face detection and face recognition models
 face_detector = dlib.get_frontal_face_detector()
 shape_predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 face_recognizer = dlib.face_recognition_model_v1('dlib_face_recognition_resnet_model_v1.dat')
+
 # Initial credentials (username: 1AM22CI, password: CI@2024)
 credentials = {"1AM22CI": generate_password_hash("CI@2024")}
+
 # Google Sheets API setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 SERVICE_ACCOUNT_FILE = 'credentials.json'  # Path to your service account file
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 sheets_service = build('sheets', 'v4', credentials=creds)
 drive_service = build('drive', 'v3', credentials=creds)
+
 def get_google_sheet_id(subject, section):
     """Retrieve the Google Sheet ID for the given subject and section."""
     sheet_id_file = f'{subject}_{section}_sheet_id.txt'
@@ -42,6 +49,7 @@ def get_google_sheet_id(subject, section):
         with open(sheet_id_file, 'r') as file:
             return file.read().strip()
     return None
+
 def create_google_sheet(subject, section):
     """Create a new Google Sheet and save its ID."""
     try:
@@ -87,6 +95,7 @@ def login():
         else:
             return "Invalid credentials. Please try again."
     return render_template('login.html')
+
 @app.route('/choose_semester', methods=['GET', 'POST'])
 def choose_semester():
     if 'user' not in session:
@@ -104,6 +113,7 @@ def choose_semester():
         
         return redirect(url_for('options_page', semester=semester, section=section, subject=subject))
     return render_template('choose_semester.html', semesters=semesters, sections=sections)
+
 @app.route('/options_page', methods=['GET', 'POST'])
 def options_page():
     semester = request.args.get('semester')
@@ -111,6 +121,7 @@ def options_page():
     subject = request.args.get('subject')
     
     return render_template('options_page.html', semester=semester, section=section, subject=subject)
+
 @app.route('/enroll', methods=['GET', 'POST'])
 def enroll():
     if 'user' not in session:
@@ -157,9 +168,11 @@ def enroll():
         else:
             message = "No face detected in the images."
         
-        return message
-    
+        # After enrolling, automatically redirect to options page after 3 seconds
+        return render_template('enroll_success.html', message=message)
+
     return render_template('enroll.html')
+
 @app.route('/take_attendance', methods=['GET', 'POST'])
 def take_attendance():
     if 'user' not in session:
@@ -226,9 +239,11 @@ def take_attendance():
         return f"Attendance taken for {subject} ({section}). Report saved as {attendance_file}. View Sheet: https://docs.google.com/spreadsheets/d/{sheet_id}/edit?usp=sharing"
     
     return render_template('take_attendance.html')
+
 @app.route('/attendance_statistics')
 def attendance_statistics():
     return render_template('attendance_statistics.html')
+
 def load_all_students():
     students = []
     if not os.path.exists(PICKLE_FILE):  # Check if the pickle file exists
@@ -240,6 +255,7 @@ def load_all_students():
             except EOFError:
                 break
     return students
+
 def update_attendance_in_sheet(sheet_id, present_students, absent_students, timestamp):
     range_present = 'Present!A1'
     range_absent = 'Absent!A1'
@@ -261,6 +277,7 @@ def update_attendance_in_sheet(sheet_id, present_students, absent_students, time
         valueInputOption='RAW',
         body={'values': values_absent}
     ).execute()
+
 # Run the Flask app
 if __name__ == '__main__':
     app.run(debug=True)

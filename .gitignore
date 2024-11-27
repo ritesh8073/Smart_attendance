@@ -1,0 +1,13 @@
+# Ignore everything by default
+/*
+
+# But don't ignore app.py
+!app.py
+
+# Don't ignore the templates folder
+!templates/
+
+# Don't ignore the files inside the templates folder
+!templates/*
+
+
