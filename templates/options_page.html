@@ -127,9 +127,37 @@
                 transform: translateY(0);
             }
         }
+
+        /* Styling for the transparent logout button */
+        .logout-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 10px 20px;
+            border: 2px solid white;
+            background-color: transparent;
+            color: white;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background-color: white;
+            color: #1a73e8;
+            border-color: #1a73e8;
+            transform: scale(1.1);
+        }
+
     </style>
 </head>
 <body>
+    <!-- Transparent Logout Button -->
+    <a href="{{ url_for('logout') }}">
+        <button class="logout-button">Logout</button>
+    </a>
+
     <div class="session-info">
         <h2>Current Session</h2>
         <p>Semester: {{ semester }}</p>
