@@ -1,6 +1,11 @@
-import matplotlib.pyplot as plt
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash, jsonify
+import os
 import re
 from collections import defaultdict
+from fpdf import FPDF
+
+app = Flask(__name__)
+app.secret_key = 'supersecretkey'  # For using flash messages
 
 # Function to read the entire attendance data from a file
 def read_attendance_data(file_path):
@@ -14,87 +19,108 @@ def read_attendance_data(file_path):
 
 # Function to process the attendance data and calculate percentages
 def process_attendance_data(attendance_data):
-    # Initialize data structures to track attendance
     students = defaultdict(lambda: {'present': 0, 'total_sessions': 0})
     
-    # Regular expression patterns to match "Present" and "Absent" students
     present_pattern = re.compile(r"Present Students:\s*(.*?)\s*Absent Students:", re.DOTALL)
     absent_pattern = re.compile(r"Absent Students:\s*(.*?)\s*(?=\n---|$)", re.DOTALL)
 
-    # Process attendance data
     sessions = attendance_data.strip().split("\n\n--- Attendance Session:")
     
     for session in sessions:
-        # Extract present and absent student lists using regex
-        present_students = re.findall(r"\((.*?)\)", present_pattern.search(session).group(1) if present_pattern.search(session) else "")
-        absent_students = re.findall(r"\((.*?)\)", absent_pattern.search(session).group(1) if absent_pattern.search(session) else "")
+        present_students = present_pattern.search(session)
+        absent_students = absent_pattern.search(session)
         
-        # For present students
-        for student in present_students:
-            student_name = student.split(')')[0].strip()
-            students[student_name]['present'] += 1
-            students[student_name]['total_sessions'] += 1
-
-        # For absent students
-        for student in absent_students:
-            student_name = student.split(')')[0].strip()
-            students[student_name]['total_sessions'] += 1
+        if present_students:
+            present_list = re.findall(r"([\w\s]+ \(\w+\))", present_students.group(1))
+            for student in present_list:
+                students[student]['present'] += 1
+                students[student]['total_sessions'] += 1
+        
+        if absent_students:
+            absent_list = re.findall(r"([\w\s]+ \(\w+\))", absent_students.group(1))
+            for student in absent_list:
+                students[student]['total_sessions'] += 1
     
-    # Calculate attendance percentages
     attendance_percentages = {}
     for student, data in students.items():
         total_sessions = data['total_sessions']
         if total_sessions > 0:
             attendance_percentages[student] = (data['present'] / total_sessions) * 100
         else:
-            # If no sessions are recorded for the student, set their percentage to 0
             attendance_percentages[student] = 0
     
     return attendance_percentages
 
-# Function to display the pie chart for a selected student
-def display_pie_chart(student_name, attendance_percentages):
-    if student_name in attendance_percentages:
-        attendance_percentage = attendance_percentages[student_name]
-        absent_percentage = 100 - attendance_percentage
-        
-        # Create the pie chart
-        labels = ['Present', 'Absent']
-        sizes = [attendance_percentage, absent_percentage]
-        colors = ['#4CAF50', '#FF5733']  # Green for Present, Red for Absent
+# Function to create a PDF report
+def create_pdf_report(statistics):
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(200, 10, txt="Attendance Report", ln=True, align="C")
+    pdf.ln(10)
 
-        fig, ax = plt.subplots(figsize=(5, 5))
-        ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
-        ax.set_title(f'{student_name} Attendance: {attendance_percentage:.1f}%')
-        plt.show()
+    # Adding students with attendance below 75%
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Students with Attendance Below 75%", ln=True)
+    pdf.set_font("Arial", "", 12)
+
+    # Set to track students already printed
+    printed_students = set()
+
+    for student, percentage in statistics.items():
+        if percentage < 75:
+            if student not in printed_students:
+                pdf.set_text_color(255, 0, 0)  # Red color for low attendance
+                pdf.cell(0, 10, f"{student} - {percentage:.1f}%", ln=True)
+                pdf.set_text_color(0, 0, 0)  # Reset color to black
+                printed_students.add(student)
+
+    pdf.ln(5)
+
+    # Adding students with attendance 75% or above
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Students with Attendance 75% or Above", ln=True)
+    pdf.set_font("Arial", "", 12)
+
+    for student, percentage in statistics.items():
+        if percentage >= 75:
+            if student not in printed_students:
+                pdf.set_text_color(0, 128, 0)  # Green color for good attendance
+                pdf.cell(0, 10, f"{student} - {percentage:.1f}%", ln=True)
+                pdf.set_text_color(0, 0, 0)  # Reset color to black
+                printed_students.add(student)
+
+    pdf_output_path = "attendance_report.pdf"
+    pdf.output(pdf_output_path)
+    return pdf_output_path
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    folder_path = os.path.dirname(os.path.abspath(__file__))
+    files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
+
+    if request.method == 'POST':
+        selected_file = request.form.get('file')
+        if selected_file:
+            file_path = os.path.join(folder_path, selected_file)
+            attendance_data = read_attendance_data(file_path)
+            if attendance_data is not None:
+                attendance_percentages = process_attendance_data(attendance_data)
+                pdf_path = create_pdf_report(attendance_percentages)
+                return jsonify({"status": "success", "pdf_path": pdf_path, "file_name": selected_file})
+            return jsonify({"status": "error", "message": "Error reading the file. Please try again."})
+
+    return render_template('attendance_statistics.html', files=files)
+
+@app.route('/download/<file_name>')
+def download(file_name):
+    pdf_path = "attendance_report.pdf"
+    if os.path.exists(pdf_path):
+        return send_file(pdf_path, as_attachment=True, download_name=f"{file_name}_attendance_report.pdf")
     else:
-        print(f"Data for student '{student_name}' not found.")
+        flash("Report not found. Please try again.")
+        return redirect(url_for('home'))
 
-# Main function to handle user input and display results
-def main():
-    # Ask the user for the file path of the attendance data
-    file_path = input("Enter the path of the attendance text file: ").strip()
-
-    # Read and process the attendance data
-    attendance_data = read_attendance_data(file_path)
-    
-    if attendance_data is None:
-        return
-
-    # Process the attendance data
-    attendance_percentages = process_attendance_data(attendance_data)
-
-    # Display list of students and their attendance percentages
-    print("\nStudent Attendance Percentages:")
-    for student, percentage in attendance_percentages.items():
-        print(f"{student}: {percentage:.1f}%")
-    
-    # Ask the user to select a student to view detailed attendance
-    selected_student = input("\nEnter the student name to view their attendance: ").strip()
-
-    # Display the pie chart for the selected student
-    display_pie_chart(selected_student, attendance_percentages)
-
-# Run the main function
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)

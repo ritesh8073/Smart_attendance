@@ -9,6 +9,7 @@ from flask import Flask, request, render_template, redirect, url_for, session
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
+import matplotlib.pyplot as plt
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -43,12 +44,26 @@ sheets_service = build('sheets', 'v4', credentials=creds)
 drive_service = build('drive', 'v3', credentials=creds)
 
 def get_google_sheet_id(subject, section, semester):
-    """Retrieve the Google Sheet ID for the given semester, subject, and section."""
+    """Retrieve the Google Sheet ID for the given semester, subject, and section.
+    If the sheet doesn't exist, create a new one."""
     sheet_id_file = f'{subject}_{section}_{semester}_sheet_id.txt'  # Include semester in the file name
     if os.path.exists(sheet_id_file):
         with open(sheet_id_file, 'r') as file:
-            return file.read().strip()
-    return None
+            sheet_id = file.read().strip()
+        
+        # Verify if the sheet exists by making a request to read the sheet's metadata
+        try:
+            sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+            return sheet_id  # Sheet exists, return the ID
+        except HttpError as e:
+            if e.resp.status == 404:
+                print(f"Sheet with ID {sheet_id} not found. Creating a new sheet...")
+                return create_google_sheet(subject, section, semester)
+            else:
+                raise  # Reraise the exception for other HTTP errors
+    else:
+        print("Sheet ID file not found. Creating a new sheet...")
+        return create_google_sheet(subject, section, semester)
 
 def create_google_sheet(subject, section, semester):
     """Create a new Google Sheet and save its ID."""
@@ -92,7 +107,6 @@ def logout():
     session.pop('section', None)
     session.pop('subject', None)
     return redirect(url_for('login'))  # Redirect to login page
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -188,7 +202,6 @@ def enroll():
     
     return render_template('enroll.html')
 
-
 @app.route('/take_attendance', methods=['GET', 'POST'])
 def take_attendance():
     if 'user' not in session:
@@ -257,6 +270,13 @@ def take_attendance():
         return f"Attendance taken for {semester} {subject} ({section}). Report saved as {attendance_file}. View Sheet: https://docs.google.com/spreadsheets/d/{sheet_id}/edit?usp=sharing"
     
     return render_template('take_attendance.html')
+
+
+@app.route('/attendance_statistics')
+
+def attendance_statistics():
+
+  return render_template('attendance_statistics.html')
 
 def load_all_students():
     """Load all students from the pickle file."""
