@@ -42,19 +42,19 @@ creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE
 sheets_service = build('sheets', 'v4', credentials=creds)
 drive_service = build('drive', 'v3', credentials=creds)
 
-def get_google_sheet_id(subject, section):
-    """Retrieve the Google Sheet ID for the given subject and section."""
-    sheet_id_file = f'{subject}_{section}_sheet_id.txt'
+def get_google_sheet_id(subject, section, semester):
+    """Retrieve the Google Sheet ID for the given semester, subject, and section."""
+    sheet_id_file = f'{subject}_{section}_{semester}_sheet_id.txt'  # Include semester in the file name
     if os.path.exists(sheet_id_file):
         with open(sheet_id_file, 'r') as file:
             return file.read().strip()
     return None
 
-def create_google_sheet(subject, section):
+def create_google_sheet(subject, section, semester):
     """Create a new Google Sheet and save its ID."""
     try:
         spreadsheet = {
-            'properties': {'title': f'Attendance_{subject}_{section}'},
+            'properties': {'title': f'Attendance_{semester}_{subject}_{section}'},  # Include semester
             'sheets': [
                 {'properties': {'title': 'Present'}},
                 {'properties': {'title': 'Absent'}}
@@ -65,7 +65,7 @@ def create_google_sheet(subject, section):
         sheet_id = sheet['spreadsheetId']
         
         # Save the sheet ID to a file for future use
-        with open(f'{subject}_{section}_sheet_id.txt', 'w') as file:
+        with open(f'{subject}_{section}_{semester}_sheet_id.txt', 'w') as file:
             file.write(sheet_id)
         
         # Make the sheet viewable by anyone with the link (view only)
@@ -197,12 +197,15 @@ def take_attendance():
     if request.method == 'POST':
         subject = session.get('subject', 'default')
         section = session.get('section', 'A')
-        sheet_id = get_google_sheet_id(subject, section)
+        semester = session.get('semester', '1')  # Get semester from session
+        sheet_id = get_google_sheet_id(subject, section, semester)
         
         if not sheet_id:
-            sheet_id = create_google_sheet(subject, section)
+            sheet_id = create_google_sheet(subject, section, semester)
         
-        attendance_file = f"attendance_{subject}_{section}.txt"
+        # Modify file naming to include semester
+        attendance_file = f"attendance_{semester}_{subject}_{section}.txt"  # Include semester
+        
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         if 'class_images' not in request.files:
@@ -251,24 +254,23 @@ def take_attendance():
             report.write("\nAbsent Students:\n")
             report.writelines(f"{name} ({usn})\n" for name, usn in absent_students)
         
-        return f"Attendance taken for {subject} ({section}). Report saved as {attendance_file}. View Sheet: https://docs.google.com/spreadsheets/d/{sheet_id}/edit?usp=sharing"
+        return f"Attendance taken for {semester} {subject} ({section}). Report saved as {attendance_file}. View Sheet: https://docs.google.com/spreadsheets/d/{sheet_id}/edit?usp=sharing"
     
     return render_template('take_attendance.html')
 
-@app.route('/attendance_statistics')
-def attendance_statistics():
-    return render_template('attendance_statistics.html')
-
 def load_all_students():
+    """Load all students from the pickle file."""
     students = []
-    if not os.path.exists(PICKLE_FILE):  # Check if the pickle file exists
-        return students  # Return an empty list if no students are enrolled yet
-    with open(PICKLE_FILE, 'rb') as f:
-        while True:
-            try:
-                students.append(pickle.load(f))
-            except EOFError:
-                break
+    try:
+        with open(PICKLE_FILE, 'rb') as f:
+            while True:
+                try:
+                    student = pickle.load(f)
+                    students.append(student)
+                except EOFError:
+                    break
+    except FileNotFoundError:
+        pass
     return students
 
 def update_attendance_in_sheet(sheet_id, present_students, absent_students, timestamp):
@@ -276,7 +278,7 @@ def update_attendance_in_sheet(sheet_id, present_students, absent_students, time
     range_absent = 'Absent!A1'
     values_present = [[timestamp] + [f"{name} ({usn})" for name, usn in present_students]]
     values_absent = [[timestamp] + [f"{name} ({usn})" for name, usn in absent_students]]
-    
+
     # Append the attendance data without overwriting existing data
     sheets_service.spreadsheets().values().append(
         spreadsheetId=sheet_id,
@@ -284,7 +286,7 @@ def update_attendance_in_sheet(sheet_id, present_students, absent_students, time
         valueInputOption='RAW',
         body={'values': values_present}
     ).execute()
-    
+
     # Append absent students
     sheets_service.spreadsheets().values().append(
         spreadsheetId=sheet_id,
@@ -293,6 +295,5 @@ def update_attendance_in_sheet(sheet_id, present_students, absent_students, time
         body={'values': values_absent}
     ).execute()
 
-# Run the Flask app
 if __name__ == '__main__':
     app.run(debug=True)
