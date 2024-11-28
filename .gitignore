@@ -4,6 +4,14 @@
 # But don't ignore app.py
 !app.py
 
+!clearsheet.py
+
+!att.py
+
+!delete_sheet.py
+
+!checksheet.py
+
 # Don't ignore the templates folder
 !templates/
 
