@@ -8,6 +8,8 @@
 
 !att.py
 
+
+
 !delete_sheet.py
 
 !checksheet.py
@@ -17,5 +19,9 @@
 
 # Don't ignore the files inside the templates folder
 !templates/*
+
+!static/
+
+!static/*
 
 
