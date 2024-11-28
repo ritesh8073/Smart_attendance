@@ -88,6 +88,9 @@ def index():
 def logout():
     """Log out the user by clearing the session and redirecting to login page."""
     session.pop('user', None)  # Remove the user from the session
+    session.pop('semester', None)  # Clear the semester, section, and subject data as well
+    session.pop('section', None)
+    session.pop('subject', None)
     return redirect(url_for('login'))  # Redirect to login page
 
 
@@ -109,23 +112,28 @@ def choose_semester():
         return redirect(url_for('login'))
     
     semesters = [str(i) for i in range(1, 9)]  # Semesters 1 to 8
-    sections = ['A', 'B', 'C', 'D', 'E','F','G']  # Sections A to G
+    sections = ['A', 'B', 'C', 'D', 'E', 'F', 'G']  # Sections A to G
     if request.method == 'POST':
         semester = request.form['semester']
         section = request.form['section']
         subject = request.form['subject']
         
-        session['subject'] = subject
+        # Set session variables for semester, section, and subject
+        session['semester'] = semester
         session['section'] = section
+        session['subject'] = subject
         
-        return redirect(url_for('options_page', semester=semester, section=section, subject=subject))
+        return redirect(url_for('options_page'))  # Redirect to options page
+    
     return render_template('choose_semester.html', semesters=semesters, sections=sections)
 
-@app.route('/options_page', methods=['GET', 'POST'])
+@app.route('/options_page', methods=['GET'])
 def options_page():
-    semester = request.args.get('semester')
-    section = request.args.get('section')
-    subject = request.args.get('subject')
+    """Display the options page."""
+    # Get the session variables to pass to the template
+    semester = session.get('semester', 'Not Set')
+    section = session.get('section', 'Not Set')
+    subject = session.get('subject', 'Not Set')
     
     return render_template('options_page.html', semester=semester, section=section, subject=subject)
 
@@ -140,6 +148,7 @@ def enroll():
         files = request.files.getlist('photos')
         encodings = []
         
+        # Process each photo and extract face encodings
         for file in files:
             img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -175,10 +184,10 @@ def enroll():
         else:
             message = "No face detected in the images."
         
-        # After enrolling, automatically redirect to options page after 3 seconds
         return render_template('enroll_success.html', message=message)
-
+    
     return render_template('enroll.html')
+
 
 @app.route('/take_attendance', methods=['GET', 'POST'])
 def take_attendance():
@@ -196,7 +205,6 @@ def take_attendance():
         attendance_file = f"attendance_{subject}_{section}.txt"
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Check if multiple files are included
         if 'class_images' not in request.files:
             return "No files part", 400  # Handle missing files
         
