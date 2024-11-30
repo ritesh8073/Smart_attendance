@@ -5,11 +5,10 @@ import pickle
 import numpy as np
 from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, session, send_file
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
-import matplotlib.pyplot as plt
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -43,56 +42,22 @@ creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE
 sheets_service = build('sheets', 'v4', credentials=creds)
 drive_service = build('drive', 'v3', credentials=creds)
 
-def get_google_sheet_id(subject, section, semester):
-    """Retrieve the Google Sheet ID for the given semester, subject, and section.
-    If the sheet doesn't exist, create a new one."""
-    sheet_id_file = f'{subject}_{section}_{semester}_sheet_id.txt'  # Include semester in the file name
-    if os.path.exists(sheet_id_file):
-        with open(sheet_id_file, 'r') as file:
-            sheet_id = file.read().strip()
-        
-        # Verify if the sheet exists by making a request to read the sheet's metadata
-        try:
-            sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
-            return sheet_id  # Sheet exists, return the ID
-        except HttpError as e:
-            if e.resp.status == 404:
-                print(f"Sheet with ID {sheet_id} not found. Creating a new sheet...")
-                return create_google_sheet(subject, section, semester)
-            else:
-                raise  # Reraise the exception for other HTTP errors
-    else:
-        print("Sheet ID file not found. Creating a new sheet...")
-        return create_google_sheet(subject, section, semester)
-
-def create_google_sheet(subject, section, semester):
-    """Create a new Google Sheet and save its ID."""
+def load_all_students():
+    """Load all students from the pickle file."""
+    students = []
     try:
-        spreadsheet = {
-            'properties': {'title': f'Attendance_{semester}_{subject}_{section}'},  # Include semester
-            'sheets': [
-                {'properties': {'title': 'Present'}},
-                {'properties': {'title': 'Absent'}}
-            ]
-        }
-        # Create the sheet
-        sheet = sheets_service.spreadsheets().create(body=spreadsheet).execute()
-        sheet_id = sheet['spreadsheetId']
-        
-        # Save the sheet ID to a file for future use
-        with open(f'{subject}_{section}_{semester}_sheet_id.txt', 'w') as file:
-            file.write(sheet_id)
-        
-        # Make the sheet viewable by anyone with the link (view only)
-        drive_service.permissions().create(
-            fileId=sheet_id,
-            body={'type': 'anyone', 'role': 'reader'}
-        ).execute()
-        
-        return sheet_id
-    except HttpError as err:
-        print(f"Error creating or sharing the sheet: {err}")
-        return None
+        with open(PICKLE_FILE, 'rb') as f:
+            while True:
+                try:
+                    student = pickle.load(f)
+                    students.append(student)
+                except EOFError:
+                    break
+    except FileNotFoundError:
+        pass
+    return students
+
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -181,7 +146,8 @@ def enroll():
             # Check if student already exists in the pickle file
             for student in existing_students:
                 if student['usn'] == usn:
-                    student['encodings'] = encodings  # Update encodings
+                    student['name'] = name  # Update the student's name
+                    student['encodings'] = encodings  # Update the face encodings
                     student_exists = True
                     break
             
@@ -201,6 +167,7 @@ def enroll():
         return render_template('enroll_success.html', message=message)
     
     return render_template('enroll.html')
+
 
 @app.route('/take_attendance', methods=['GET', 'POST'])
 def take_attendance():
@@ -278,20 +245,55 @@ def attendance_statistics():
 
   return render_template('attendance_statistics.html')
 
-def load_all_students():
-    """Load all students from the pickle file."""
-    students = []
+def get_google_sheet_id(subject, section, semester):
+    """Retrieve the Google Sheet ID for the given semester, subject, and section."""
+    sheet_id_file = f'{subject}_{section}_{semester}_sheet_id.txt'  # Include semester in the file name
+    if os.path.exists(sheet_id_file):
+        with open(sheet_id_file, 'r') as file:
+            sheet_id = file.read().strip()
+        
+        # Verify if the sheet exists by making a request to read the sheet's metadata
+        try:
+            sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+            return sheet_id  # Sheet exists, return the ID
+        except HttpError as e:
+            if e.resp.status == 404:
+                print(f"Sheet with ID {sheet_id} not found. Creating a new sheet...")
+                return create_google_sheet(subject, section, semester)
+            else:
+                raise  # Reraise the exception for other HTTP errors
+    else:
+        print("Sheet ID file not found. Creating a new sheet...")
+        return create_google_sheet(subject, section, semester)
+
+def create_google_sheet(subject, section, semester):
+    """Create a new Google Sheet and save its ID."""
     try:
-        with open(PICKLE_FILE, 'rb') as f:
-            while True:
-                try:
-                    student = pickle.load(f)
-                    students.append(student)
-                except EOFError:
-                    break
-    except FileNotFoundError:
-        pass
-    return students
+        spreadsheet = {
+            'properties': {'title': f'Attendance_{semester}_{subject}_{section}'},  # Include semester
+            'sheets': [
+                {'properties': {'title': 'Present'}},
+                {'properties': {'title': 'Absent'}}
+            ]
+        }
+        # Create the sheet
+        sheet = sheets_service.spreadsheets().create(body=spreadsheet).execute()
+        sheet_id = sheet['spreadsheetId']
+        
+        # Save the sheet ID to a file for future use
+        with open(f'{subject}_{section}_{semester}_sheet_id.txt', 'w') as file:
+            file.write(sheet_id)
+        
+        # Make the sheet viewable by anyone with the link (view only)
+        drive_service.permissions().create(
+            fileId=sheet_id,
+            body={'type': 'anyone', 'role': 'reader'}
+        ).execute()
+        
+        return sheet_id
+    except HttpError as err:
+        print(f"Error creating or sharing the sheet: {err}")
+        return None
 
 def update_attendance_in_sheet(sheet_id, present_students, absent_students, timestamp):
     range_present = 'Present!A1'

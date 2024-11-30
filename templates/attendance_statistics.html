@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance Statistics - AMC College</title>
-    <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
@@ -18,11 +18,9 @@
             background-position: center;
             background-attachment: fixed;
             color: white;
-            overflow-x: hidden; /* Allow vertical scrolling */
-            height: 100%; /* Full height for body */
+            overflow-x: hidden;
+            height: 100%;
         }
-
-        /* Main container */
         .main-container {
             display: flex;
             flex-direction: column;
@@ -30,8 +28,9 @@
             align-items: center;
             padding: 3rem 1rem;
             text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
         }
-
         h1 {
             font-size: 2.5rem;
             margin-bottom: 2rem;
@@ -39,7 +38,6 @@
             color: #ffffff;
             animation: fadeIn 2s ease-out;
         }
-
         .college-info {
             display: flex;
             flex-direction: column;
@@ -47,100 +45,75 @@
             margin-bottom: 3rem;
             animation: fadeIn 2s ease-out;
         }
-
         .college-logo {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             margin-bottom: 1rem;
         }
-
         .college-name {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #1a73e8;
-        }
-
-        .dept-name {
-            font-size: 1.2rem;
-            color: #ddd;
-        }
-
-        .message-container {
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            padding: 2rem;
-            margin-bottom: 3rem;
-            width: 80%;
-            max-width: 700px;
-            animation: fadeInUp 2s ease-out;
-        }
-
-        .message-container h2 {
             font-size: 2rem;
-            color: #1a73e8;
-            margin-bottom: 1rem;
             font-weight: bold;
+            color: #1a73e8;
         }
-
-        .message-container p {
-            font-size: 1.1rem;
-            color: #ddd;
-            line-height: 1.5;
-        }
-
-        .card-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            margin-bottom: 3rem;
-            width: 100%;
-            max-width: 700px;
-        }
-
-        .card {
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-            padding: 2rem;
-            text-align: center;
-            min-height: 150px;
-            transition: transform 0.3s ease-in-out;
-            animation: fadeInUp 2.5s ease-out;
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-        }
-
-        .card .card-title {
+        .dept-name {
             font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: #1a73e8;
+            color: #ddd;
         }
-
-        .card .card-text {
-            font-size: 1.2rem;
-            color: #333;
+        .file-selection {
+            margin-bottom: 2rem;
+            text-align: center;
+            width: 100%;
         }
-
-        .sheet-link {
-            display: inline-block;
-            padding: 1rem;
-            background-color: #1a73e8;
-            border: 1px solid #ddd;
+        .file-selection label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .file-selection select {
+            padding: 0.5rem;
             border-radius: 4px;
-            text-decoration: none;
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+        .file-selection button {
+            padding: 0.5rem 1rem;
+            background-color: #1a73e8;
+            border: none;
+            border-radius: 4px;
             color: white;
-            font-weight: bold;
-            margin-top: 1rem;
+            cursor: pointer;
+            font-size: 1rem;
             transition: background-color 0.3s;
         }
-
-        .sheet-link:hover {
+        .file-selection button:hover {
             background-color: #1557b0;
         }
-
+        .download-section {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .download-button {
+            display: block;
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        .download-button:hover {
+            background-color: #218838;
+        }
+        .selected-file {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #f0ad4e;
+        }
         footer {
             text-align: center;
             padding: 1rem;
@@ -148,93 +121,78 @@
             color: white;
             margin-top: 3rem;
             position: relative;
-            bottom: 0;
             width: 100%;
         }
-
         footer a {
             color: #1a73e8;
             text-decoration: none;
         }
-
         footer a:hover {
             text-decoration: underline;
         }
-
-        /* Animations */
         @keyframes fadeIn {
             0% { opacity: 0; }
             100% { opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-            0% {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            .message-container h2 {
-                font-size: 1.6rem;
-            }
-
-            .message-container p {
-                font-size: 1rem;
-            }
-
-            .card .card-title {
-                font-size: 1.3rem;
-            }
-
-            .card .card-text {
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
 <body>
     <div class="main-container">
-        <!-- College Information Section -->
-        <div class="college-info animate__animated animate__fadeIn">
+        <div class="college-info">
             <img src="/static/amc_logo.jpg" alt="AMC Engineering College" class="college-logo">
             <div>
                 <div class="college-name">AMC Engineering College</div>
                 <div class="dept-name">Department of CSE (AI & ML)</div>
             </div>
         </div>
-
-        <!-- Heading -->
         <h1>Attendance Statistics - AMC College</h1>
-
-        <!-- Message Container -->
-        <div class="message-container">
-            <h2>Student Attendance Data</h2>
-            <p>The statistical percentage of each student in each subject will be available soon on this site. Please check back later.</p>
+        <div class="file-selection">
+            <label for="file">Choose an attendance file:</label>
+            <select name="file" id="file">
+                <option value="">-- Select a file --</option>
+                {% for file in files %}
+                    <option value="{{ file }}">{{ file }}</option>
+                {% endfor %}
+            </select>
+            <button id="submit-btn">Submit</button>
         </div>
-
-        <!-- Cards Section -->
-        <div class="card-container">
-            <div class="card">
-                <div class="card-title">Attendance Statistics Coming Soon</div>
-                <div class="card-text">
-                    We are working on making the attendance statistics available. Please be patient and check back later.
-                </div>
-                <a href="#" class="sheet-link" target="_blank">Stay Updated</a>
-            </div>
+        <div id="selected-file" class="selected-file"></div>
+        <div class="download-section" id="download-section" style="display: none;">
+            <button class="download-button" id="download-btn">Download PDF Report</button>
         </div>
     </div>
-
     <footer>
         <p>Powered by AMC College CSE AI & ML Department. <a href="#">Privacy Policy</a></p>
     </footer>
+
+    <script>
+        $(document).ready(function() {
+            $('#submit-btn').click(function() {
+                var selectedFile = $('#file').val();
+                if (selectedFile) {
+                    $.ajax({
+                        url: '/',
+                        type: 'POST',
+                        data: {file: selectedFile},
+                        success: function(response) {
+                            if (response.status === "success") {
+                                $('#selected-file').text("Selected file: " + response.file_name);
+                                $('#download-section').show();
+                                $('#download-btn').attr('onclick', "window.location.href='/download/" + response.file_name + "'");
+                                alert('Report generated successfully!');
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Error processing the file. Please try again.');
+                        }
+                    });
+                } else {
+                    alert('Please select a file.');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
