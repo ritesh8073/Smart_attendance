@@ -32,3 +32,9 @@ You can now test your Flask app on your mobile device, such as logging in, enrol
 8. Keep ngrok Running
 Keep ngrok running to keep the public URL active.
 If ngrok stops, the URL will no longer work. Restart ngrok for a new URL.
+
+
+
+
+
+ngrok authtoken 2phzImSZRmaFFOxgOzARTQ3UMg5_26F4kmdvTvjUUEr7qdDYu
