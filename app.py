@@ -58,7 +58,6 @@ def load_all_students():
     return students
 
 
-
 @app.route('/', methods=['GET'])
 def index():
     """Render the starting page (index.html)."""
@@ -109,7 +108,6 @@ def choose_semester():
 @app.route('/options_page', methods=['GET'])
 def options_page():
     """Display the options page."""
-    # Get the session variables to pass to the template
     semester = session.get('semester', 'Not Set')
     section = session.get('section', 'Not Set')
     subject = session.get('subject', 'Not Set')
@@ -124,6 +122,8 @@ def enroll():
     if request.method == 'POST':
         name = request.form['name']
         usn = request.form['usn']
+        semester = session.get('semester', 'Not Set')
+        section = session.get('section', 'Not Set')
         files = request.files.getlist('photos')
         encodings = []
         
@@ -148,12 +148,14 @@ def enroll():
                 if student['usn'] == usn:
                     student['name'] = name  # Update the student's name
                     student['encodings'] = encodings  # Update the face encodings
+                    student['semester'] = semester  # Update semester
+                    student['section'] = section  # Update section
                     student_exists = True
                     break
             
             # If student doesn't exist, add new entry
             if not student_exists:
-                existing_students.append({"name": name, "usn": usn, "encodings": encodings})
+                existing_students.append({"name": name, "usn": usn, "encodings": encodings, "semester": semester, "section": section})
             
             # Save all students back to pickle file
             with open(PICKLE_FILE, 'wb') as f:
@@ -213,15 +215,18 @@ def take_attendance():
                     while True:
                         try:
                             student = pickle.load(f)
-                            matches = [np.linalg.norm(face_encoding - enc) < 0.6 for enc in student['encodings']]
-                            if any(matches):
-                                present_students.add((student['name'], student['usn']))  # Add student to set
-                                break
+                            
+                            # Only consider students from the current semester and section
+                            if student['semester'] == semester and student['section'] == section:
+                                matches = [np.linalg.norm(face_encoding - enc) < 0.6 for enc in student['encodings']]
+                                if any(matches):
+                                    present_students.add((student['name'], student['usn']))  # Add student to set
+                                    break
                         except EOFError:
                             break
         
         # Load all students to get the absent students
-        absent_students = [(student['name'], student['usn']) for student in load_all_students() if (student['name'], student['usn']) not in present_students]
+        absent_students = [(student['name'], student['usn']) for student in load_all_students() if (student['name'], student['usn']) not in present_students and student['semester'] == semester and student['section'] == section]
         
         # Update attendance in Google Sheets
         update_attendance_in_sheet(sheet_id, list(present_students), absent_students, timestamp)
@@ -240,10 +245,8 @@ def take_attendance():
 
 
 @app.route('/attendance_statistics')
-
 def attendance_statistics():
-
-  return render_template('attendance_statistics.html')
+    return render_template('attendance_statistics.html')
 
 def get_google_sheet_id(subject, section, semester):
     """Retrieve the Google Sheet ID for the given semester, subject, and section."""
